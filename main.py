@@ -1,19 +1,26 @@
-from flask import Flask, render_template, request
+# main.py
+
+from flask import Flask, request
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-  if request.method == 'POST':
-    username = request.form['username']
-    email = request.form['email']
+@app.route("/calc")
+def calculator():
+    a = int(request.args.get('a'))
+    b = int(request.args.get('b'))
+    op = request.args.get('op')
+    if op=='add':
+        return f'Result is {a+b}'
+    elif op=='diff':
+        return f'Result is {a-b}'
+    if op=='mult':
+        return f'Result is {a*b}'
+    if op=='sub':
+        return f'Result is {a/b}'
+    
 
-    # Обработка данных формы (например, сохранение в базе данных)
-    print(f"Имя пользователя: {username}, Email: {email}")
 
-    return "Данные успешно отправлены!"
-  else:
-    return render_template('index.html')
 
-if __name__ == '__main__':
-  app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
+    # app.run(host='10.42.0.1', port=5000)
