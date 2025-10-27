@@ -3,20 +3,16 @@ import random
 
 app = Flask(__name__)
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def main():
-    if request.method == 'POST':
-        input_num = request.form['phone_num']
-        return number(input_num)
-    else:
-        nums = []
-        for _ in range(1000):
-            tmp = '89'
-            for __ in range(9):
-                symb = str(random.randint(1, 9))
-                tmp += symb
-            nums.append(tmp)
-        return render_template('template.html', nums = nums)
+    nums = []
+    for _ in range(1000):
+        tmp = '89'
+        for __ in range(9):
+            symb = str(random.randint(1, 9))
+            tmp += symb
+        nums.append(tmp)
+    return render_template('template.html', nums = nums)
 
 
 @app.route("/number")
@@ -26,4 +22,3 @@ def number():
 
 if __name__ == "__main__":
     app.run(debug=True)
-    
