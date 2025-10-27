@@ -18,9 +18,12 @@ def main():
             nums.append(tmp)
         return render_template('template.html', nums = nums)
 
-@app.route("/?number=<num>")
-def number(num):
+
+@app.route("/number")
+def number():
+    num = request.args.get('num')
     return render_template('number.html', num=num)
 
 if __name__ == "__main__":
     app.run(debug=True)
+    

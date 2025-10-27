@@ -4,11 +4,12 @@
     <title>Номера</title>
 </head>
 <body>
-    <h1><b>Phone Numbers</b></h1>
+    <h1><b>Phone Numbers // template</b></h1>
     <p style="display:inline">Enter phone number: </p>
-    <form method="POST", action="/">
-        <input type="text" id="phone_num" name="phone_num" required>
-        <input type="submit" value="Search" ><br><br>
+    <form method="GET", action="/number">
+        <label>Введи номер</label>
+        <input type="text" name="num" required>
+        <input type="submit" value="Search" >
     </form>
     {% for num in nums %}
         <a style="padding: 10px;" href="{{ url_for('number', num=num)}}">{{num}}</a>
