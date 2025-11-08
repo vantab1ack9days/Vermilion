@@ -20,7 +20,7 @@
         <tr>
             <td>{{fls[i]}}</td>
             <td><a href="{{ url_for('show', file = pathes[i]) }}">{{pathes[i]}}</a></td>
-            <td></td>
+            <td>{{dates[i]}}</td>
         </tr>
         {% endfor %}
     </table>
