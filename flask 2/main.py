@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, url_for, send_from_directory
+from flask import Flask, render_template, request, url_for, send_from_directory, flash, get_flashed_messages
 import uuid
 import os
 from datetime import datetime
 import hashlib
 
 app = Flask(__name__)
+app.secret_key = 'VERMILION'
 
 root = os.path.dirname(os.path.realpath(__file__))
 UPLOAD_FOLDER = os.path.join(root, 'uploads')
@@ -33,15 +34,18 @@ not_allowed_types = ['.exe', '.sh', '.php', '.js']
 def main():
     if request.method == 'POST':
         if 'file' not in request.files:
-            return 'No file part'
+            flash('Ошибка: файл не выбран!', 'error')
+            return render_template('index.html', fls = uploaded_files, pathes = pathes, dates = dates)
 
         file = request.files['file']
         if file.filename == '':
-            return 'No selected file'
+            flash('Ошибка: файл не выбран!', 'error')
+            return render_template('index.html', fls = uploaded_files, pathes = pathes, dates = dates)
 
         type = os.path.splitext(file.filename)[1]
         if type in not_allowed_types:
-            return 'This type of file is not allowed.'
+            flash('Ошибка: тип данных не поддерживается!', 'error')
+            return render_template('index.html', fls = uploaded_files, pathes = pathes, dates = dates)
 
         uploaded_files.append(file.filename)
 
@@ -51,15 +55,17 @@ def main():
         
         file_hash = calculate_md5_hash(file_save_path)
         if file_hash in hashes:
-           os.remove(file_save_path)
-           uploaded_files.pop()
-           return 'This file has already been uploaded.'
+            os.remove(file_save_path)
+            uploaded_files.pop()
+            flash('Ошибка: файл уже загружен!', 'error')
+            return render_template('index.html', fls = uploaded_files, pathes = pathes, dates = dates)
         else:
            hashes.append(file_hash)
 
         dates.append(datetime.now())
 
         pathes.append(file_save_path[59:])
+        flash('Файл успешно загружен!', 'success')
 
     return render_template('index.html', fls = uploaded_files, pathes = pathes, dates = dates)
 
