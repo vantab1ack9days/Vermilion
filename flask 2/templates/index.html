@@ -26,11 +26,11 @@
             <td width="20%">Путь к файлу</td>
             <td width="20%">Дата загрузки</td>
         </thead>
-        {% for i in range(fls|length - 1, -1, -1) %}
+        {% for dct in fls %}
         <tr>
-            <td>{{fls[i]}}</td>
-            <td><a href="{{ url_for('show', file = pathes[i]) }}">{{pathes[i]}}</a></td>
-            <td>{{dates[i]}}</td>
+            <td>{{dct.filename}}</td>
+            <td><a href="{{ url_for('show', file = dct.path) }}">{{dct.path}}</a></td>
+            <td>{{dct.dates}}</td>
         </tr>
         {% endfor %}
     </table>
