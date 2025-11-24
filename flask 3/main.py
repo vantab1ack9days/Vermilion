@@ -49,17 +49,15 @@ def create():
             "password": hashlib.md5(form.password.data.encode('utf-8')).hexdigest(),
             "confirm": hashlib.md5(form.confirm.data.encode('utf-8')).hexdigest(),
             "registration_date": datetime.now().isoformat(),
-            "last_authorize": datetime.now().isoformat()
+            "last_authorize": None
         }
-        k = 0
         for i in range(1, len(users_db)+1):
             if users_db[str(i)]["username"] == new_user["username"]:
                 flash("Имя пользователя занято", "error")
-                k = 1
-        if k==0:
-            users_db[str(len(users_db) + 1)] = new_user
-            save_json("flask 3/data", "users_db.json", users_db)
-            flash("Учетная запись добавлена.", "success")
+                return redirect(url_for('create'))
+        users_db[str(len(users_db) + 1)] = new_user
+        save_json("flask 3/data", "users_db.json", users_db)
+        flash("Учетная запись добавлена.", "success")
     else:
         print(form.errors)
     return render_template("create.html", form=form)
