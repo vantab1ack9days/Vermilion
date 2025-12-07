@@ -15,3 +15,4 @@ class News(Base):
     title = Column(String(100), nullable=False)
     content = Column(Text, nullable=False)
     author = Column(String(50), default="Некто")
+    is_private = Column(Integer, default=0)

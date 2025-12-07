@@ -7,13 +7,23 @@
 </head>
 <body>
     <h1>Блог новостей</h1>
+    {% if auth != 1 %}
+        <h2  style="color:red">(анонимный режим)</h2>
+    {% endif %}
+    {% if auth == 1 %}
+        <a href="{{ url_for('make') }}">Добавить новую</a><br>
+    {% endif %}
     {% for el in news_list %}
-    <div>
-        <h2>{{ el.title }}</h2>
-        <span>{{ el.content }}</span>
-        <p>Автор: {{ el.author }}</p>
-        <a href="{{ url_for('redact', id=el.id) }}">Редактировать</a>
-    </div>
+    {% if auth==1 or el.is_private == 0 %}
+        <div>
+            <h2>{{ el.title }}</h2>
+            <span>{{ el.content }}</span>
+            <p>Автор: {{ el.author }}</p>
+            {% if auth == 1 %}
+                <a href="{{ url_for('redact', id=el.id) }}">Редактировать</a>
+            {% endif %}
+        </div>
+    {% endif %}
     {% endfor %}
 </body>
 </html>

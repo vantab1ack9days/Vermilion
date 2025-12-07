@@ -35,7 +35,7 @@ def register():
             if (users_db[str(i)]["username"] == tmp_user["username"] and users_db[str(i)]["password"] == tmp_user["password"]):
                 users_db[str(i)]["last_authorize"] = datetime.now().isoformat()
                 save_json("flask 4/data", "users_db.json", users_db)
-                return redirect(url_for("blog"))
+                return redirect(url_for("blog", auth=1))
         flash("Пользователь не найден.", "error")
     else:
         print(form.errors)
@@ -66,6 +66,10 @@ def create():
 
 @app.route("/blog", methods=["GET", "POST"])
 def blog():
+    try:
+        auth = int(request.args.get('auth'))
+    except:
+        auth = 0
     if not session.query(News).first():
         news1 = News(title="Первая новость", content="Это содержание первой новости", author="Иван Иванов")
     
@@ -74,7 +78,7 @@ def blog():
 
     news_list = session.query(News).order_by(News.id.desc()).all()
 
-    return render_template('blog.html', news_list=news_list)
+    return render_template('blog.html', news_list=news_list, auth=auth)
 
 @app.route("/blog/redact", methods=["GET", "POST"])
 def redact():
@@ -103,6 +107,19 @@ def redact():
                 session.commit()
         print(request.form.get('content'))
     return render_template('redact.html', title=title, content=content, author=author)
+
+@app.route("/blog/make", methods=["GET", "POST"])
+def make():
+    if request.method == "POST":
+        new_title = request.form.get('title')
+        new_content = request.form.get('content')
+        new_author = request.form.get('author')
+        new_news = News(title=new_title, content=new_content, author=new_author)
+    
+        session.add_all([new_news])
+        session.commit()
+        
+    return render_template('make.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
