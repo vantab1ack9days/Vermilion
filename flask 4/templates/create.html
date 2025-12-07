@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Создание уч. записи</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style2.css') }}">
+</head>
+<body>
+    <h1 class="regist">Создать учётную запись</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p class="uname">
+            {{ form.username.label }}<br>
+            {{ form.username(size=32) }}
+            <span style="color: red;">
+                {{ form.username.errors[0] }}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div style="color: red;padding-left:10%;" class="alert alert-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </span><br>
+        </p>
+        <p class="pass1">
+            {{ form.password.label }}<br>
+            {{ form.password(size=32) }}
+            <span style="color: red;">{{ form.password.errors[0] }}</span><br>
+        </p>
+        <p class="pass2">
+            {{ form.confirm.label }}<br>
+            {{ form.confirm(size=32) }}
+            <span style="color: red;">{{ form.confirm.errors[0] }}</span><br>
+        </p>
+        <p class="regist">{{ form.submit() }}</p>
+    </form>
+
+    <br>
+    <a class="regist" href="{{ (url_for('register')) }}">Войти</a>
+</body>
+</html>

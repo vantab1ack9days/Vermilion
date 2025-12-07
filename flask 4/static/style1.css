@@ -1,0 +1,17 @@
+.uname {
+    padding-left:40%;
+}
+
+.pass1 {
+    padding-left:40%;
+}
+
+.pass2 {
+    padding-left:40%;
+}
+
+.regist {
+    display: flex;
+    justify-content: center;
+}
+
