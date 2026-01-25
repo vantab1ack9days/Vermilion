@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Добро пожаловать</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>Выберите роль</h1>
+    <a href="{{ (url_for('teacher_auth')) }}" class="teacher">Преподаватель</a>
+    <a href="{{ (url_for('student_auth')) }}" class="student">Студент</a>
+    <a href="{{ (url_for('admin_auth')) }}" class="admin">Администратор</a>
+    <a href="{{ (url_for('main_page')) }}" class="anonymous">Войти анонимно</a>
+</body>
+</html>
