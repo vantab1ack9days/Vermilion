@@ -54,7 +54,7 @@ def student_auth():
         users_list = session.query(Users).all()
         for el in users_list:
             if username == el.username and password_hash == el.password_hash and role == el.role:
-                return redirect(url_for("main_page", login=username, role=role))
+                return redirect(url_for("teacher_page", login=username, role=role))
         flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
@@ -70,7 +70,7 @@ def admin_auth():
         users_list = session.query(Users).all()
         for el in users_list:
             if username == el.username and password_hash == el.password_hash and role == el.role:
-                return redirect(url_for("main_page", login=username, role=role))
+                return redirect(url_for("teacher_page", login=username, role=role))
         flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
@@ -130,6 +130,14 @@ def teacher_page():
             flash("Слот успешно открыт!", "success")
             return redirect(url_for('teacher_page', login=login, role=role))
 
+    # === Получаем все открытые слоты преподавателя (сортируем по времени) ===
+    all_slots = session.query(Consultation).filter_by(
+        teacher_id=CURRENT_TEACHER_ID
+    ).order_by(Consultation.start_time.desc()).all()
+
+    for slot in all_slots:
+        slot.display_time = slot.start_time.strftime('%d.%m %H:%M')
+
     from datetime import timedelta
     today = datetime.today().date()
     week_dates = [today + timedelta(days=i) for i in range(7)]
@@ -142,8 +150,44 @@ def teacher_page():
 
     slot_set = {(s.start_time.date(), s.start_time.hour) for s in slots}
 
-    return render_template('teacher_page.html', login=login, role=role, form=form, week_dates=week_dates, slot_set=slot_set)
+    return render_template(
+        'teacher_page.html',
+        login=login,
+        role=role,
+        form=form,
+        week_dates=week_dates,
+        slot_set=slot_set,
+        all_slots=all_slots
+    )
 
+@app.route('/delete_slot/<int:slot_id>', methods=['POST'])
+def delete_slot(slot_id):
+    login = request.args.get('login')
+    role = request.args.get('role')
+    CURRENT_TEACHER_ID = 1
+
+    for el in session.query(Users).all():
+        if el.username == login and role==el.role:
+            CURRENT_TEACHER_ID = el.id
+
+
+    slot = session.query(Consultation).filter_by(
+        id=slot_id,
+        teacher_id=CURRENT_TEACHER_ID  # защита: только свои слоты
+    ).first()
+
+    if not slot:
+        flash("Слот не найден.", "error")
+        return redirect(url_for("teacher_page", login=login, role=role))
+
+    if slot.student_id is not None:
+        flash("Нельзя удалить слот: на него записан студент.", "error")
+        return redirect(url_for("teacher_page", login=login, role=role))
+
+    session.delete(slot)
+    session.commit()
+    flash("Слот успешно удалён.", "success")
+    return redirect(url_for("teacher_page", login=login, role=role))
 
 
 
