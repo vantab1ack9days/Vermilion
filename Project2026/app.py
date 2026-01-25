@@ -33,17 +33,24 @@ def auth():
 @app.route("/teacher_auth", methods=["GET", "POST"])
 def teacher_auth():
     role = request.args.get('role')
-    print(role)
     form = RegistrationForm()
     if request.method == "POST" and form.validate_on_submit():
         username = request.form.get('username')
         password_hash = hashlib.md5(request.form.get('password').encode('utf-8')).hexdigest()
 
         users_list = session.query(Users).all()
+        found = False
         for el in users_list:
             if username == el.username and password_hash == el.password_hash and role == el.role:
-                return redirect(url_for("teacher_page", login=username, role=role))
-        flash("Учётная запись не найдена.", "error")
+                if el.status != 'active':
+                    flash("Ваш аккаунт заблокирован.", "error")
+                else:
+                    return redirect(url_for("teacher_page", login=username, role=role))
+                found = True
+                break
+
+        if not found:
+            flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
 
@@ -56,10 +63,18 @@ def student_auth():
         password_hash = hashlib.md5(request.form.get('password').encode('utf-8')).hexdigest()
 
         users_list = session.query(Users).all()
+        found = False
         for el in users_list:
             if username == el.username and password_hash == el.password_hash and role == el.role:
-                return redirect(url_for("student_page", login=username, role=role))
-        flash("Учётная запись не найдена.", "error")
+                if el.status != 'active':
+                    flash("Ваш аккаунт заблокирован.", "error")
+                else:
+                    return redirect(url_for("student_page", login=username, role=role))
+                found = True
+                break
+
+        if not found:
+            flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
 
@@ -74,7 +89,7 @@ def admin_auth():
         users_list = session.query(Users).all()
         for el in users_list:
             if username == el.username and password_hash == el.password_hash and role == el.role:
-                return redirect(url_for("teacher_page", login=username, role=role))
+                return redirect(url_for("admin_page", login=username, role=role))
         flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
@@ -388,6 +403,33 @@ def book_slot(slot_id):
     flash("Вы успешно записались!", "success")
     return redirect(request.referrer)
 
+
+
+
+
+#--------------------- АДМИН ---------------------
+
+@app.route("/admin_page")
+def admin_page():
+    users = session.query(Users).all()
+    return render_template('admin_page.html', users=users)
+
+@app.route("/toggle_user_status/<int:user_id>", methods=["POST"])
+def toggle_user_status(user_id):
+    new_status = request.form.get('new_status')
+    if new_status not in ('active', 'banned'):
+        flash("Недопустимый статус", "error")
+        return redirect(url_for('admin_page'))
+
+    user = session.query(Users).filter_by(id=user_id).first()
+    if not user:
+        flash("Пользователь не найден", "error")
+        return redirect(url_for('admin_page'))
+
+    user.status = new_status
+    session.commit()
+    flash(f"Статус пользователя '{user.username}' изменён на '{new_status}'", "success")
+    return redirect(url_for('admin_page'))
 
 if __name__ == "__main__":
     app.run(debug=True)
