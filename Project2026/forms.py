@@ -1,6 +1,6 @@
 import string
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, DateField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, DateField, SelectField, TextAreaField
 from wtforms.validators import DataRequired, Length, ValidationError, EqualTo
 from utils import load_json, save_json
 
@@ -22,7 +22,7 @@ class RegistrationForm(FlaskForm):
 
     def validate_username(self, field):
         username = field.data
-        user_dct = load_json("flask 4/data", "users_db.json")
+        user_dct = load_json("data", "users_db.json")
         if username in ["admin", "root", "superuser", "director", "chief", "boss"]:
             raise ValidationError("Такое имя пользоваетеля запрещено.")
         if (set(username) <= set(string.ascii_lowercase + string.digits + "_")):
@@ -56,3 +56,7 @@ class OpenSlotForm(FlaskForm):
         validators=[DataRequired()]
     )
     submit = SubmitField('Открыть запись')
+
+class BioForm(FlaskForm):
+    bio = TextAreaField("О себе", validators=[Length(max=500, message="Не более 500 символов.")])
+    submit_bio = SubmitField("Сохранить")

@@ -4,7 +4,11 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "sqlite:///Project2026/timetable.db"
+import os
+AVATAR_FOLDER = "static/avatars"
+os.makedirs(AVATAR_FOLDER, exist_ok=True)
+
+DATABASE_URL = "sqlite:///timetable.db"
 engine = create_engine(DATABASE_URL)
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
@@ -33,6 +37,7 @@ class Users(Base):
     password_hash = Column(String(255), nullable=False)
     role = Column(String(255))
     photo_path = Column(String(255))
+    bio = Column(Text, default="")
 
     taught_slots = relationship("Consultation", foreign_keys=[Consultation.teacher_id], back_populates="teacher")
     booked_slots = relationship("Consultation", foreign_keys=[Consultation.student_id], back_populates="student")
