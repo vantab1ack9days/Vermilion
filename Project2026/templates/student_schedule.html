@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Расписание</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+        font-family: Arial, sans-serif;
+        background-color: white;
+        padding: 20px;
+        margin: 0;
+        }
+        h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+        }
+        .nav-buttons {
+        text-align: center;
+        margin: 15px 0 25px;
+        }
+        .nav-buttons a {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #6c757d;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        margin: 0 10px;
+        }
+        table {
+        border: 2px solid black;
+        border-collapse: collapse;
+        margin: 0 auto;
+        width: auto;
+        }
+        th, td {
+        border: 2px solid black;
+        padding: 8px;
+        text-align: center;
+        min-width: 90px;
+        height: 50px;
+        vertical-align: middle;
+        }
+        .available-cell {
+        background-color: #d4edda; /* светло-зелёный */
+        }
+        .book-btn {
+        padding: 4px 10px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+        }
+        .book-btn:hover {
+        background-color: #218838;
+        }
+        .flash {
+        padding: 10px;
+        margin: 10px auto;
+        max-width: 600px;
+        text-align: center;
+        border-radius: 4px;
+        }
+        .flash.success { background-color: #d4edda; color: #155724; }
+        .flash.error { background-color: #f8d7da; color: #721c24; }
+        .flash.warning { background-color: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h2>Расписание консультаций — {{ teacher.username }}</h2>
+    <a href="{{ url_for('auth') }}" style="float: right;">Выйти из уч. записи</a>
+    <a href="{{ url_for('student_page', login=login, role=role) }}" style="float: left;">Назад</a>
+
+    <!-- Сообщения (flash) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Кнопки навигации -->
+    <div class="nav-buttons">
+        <a href="{{ url_for('student_schedule', login=login, role=role, teacher_id=current_teacher_id, start_date=prev_week) }}">Пред. неделя</a>
+        <a href="{{ url_for('student_schedule', login=login, role=role, teacher_id=current_teacher_id, start_date=next_week) }}">След. неделя</a>
+    </div>
+
+    <!-- Таблица расписания -->
+    <table>
+        <thead>
+        <tr>
+            <th>Время</th>
+            {% for date in week_dates %}
+            <th>{{ date.strftime('%d %b') }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for hour in range(8, 18) %}
+        <tr>
+        <td>{{ hour }}–{{ hour+1 }}</td>
+        {% for date in week_dates %}
+            <td {% if (date, hour) in slot_map %}class="available-cell"{% endif %}>
+            {% if (date, hour) in slot_map %}
+                <!-- Кнопка без onclick -->
+                <form method="POST" action="{{ url_for('book_slot', login=login, role=role, slot_id=slot_map[(date, hour)]) }}" style="display:inline;">
+                <button type="submit" class="book-btn"
+                        data-date="{{ date.strftime('%d.%m') }}"
+                        data-hour="{{ hour }}">
+                    Записаться
+                </button>
+                </form>
+            {% endif %}
+            </td>
+        {% endfor %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+<script>
+// Добавляем обработчик на все кнопки "Записаться"
+document.querySelectorAll('.book-btn').forEach(button => {
+  button.addEventListener('click', function(e) {
+    const date = this.dataset.date;
+    const hour = this.dataset.hour;
+    const message = `Записаться на ${date} в ${hour}:00?`;
+    if (!confirm(message)) {
+      e.preventDefault(); // отменить отправку формы
+    }
+  });
+});
+</script>
+</body>
+</html>

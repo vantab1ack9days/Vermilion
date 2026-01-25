@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Главная</title>
+    <title>Личный кабинет</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -19,6 +19,7 @@
         height: 50px;
         }
         .open-slot { background-color: #d4edda; } /* светло-зелёный */
+        .closed-slot { background-color: #ff6f10; }
         .form-container { max-width: 500px; margin: 30px auto; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; }
@@ -31,6 +32,8 @@
 </head>
 <body>
     <h1>Добро пожаловать, {{ login }}</h1>
+
+    <a href="{{ url_for('auth') }}" style="float: right;">Выйти из уч. записи</a>
 
     <!-- Всплывающие сообщения -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -68,9 +71,17 @@
         <tr>
         <td>{{ hour }}–{{ hour+1 }}</td>
         {% for date in week_dates %}
-            <td {% if (date, hour) in slot_set %}class="open-slot"{% endif %}>
-            {% if (date, hour) in slot_set %}
+            <td 
+            {% if (date, hour) in open_slot_set %}
+                class="open-slot"
+            {% elif (date, hour) in booked_slot_set %}
+                class="closed-slot"
+            {% endif %}
+            >
+            {% if (date, hour) in open_slot_set %}
                 Открыт
+            {% elif (date, hour) in booked_slot_set %}
+                Занято
             {% endif %}
             </td>
         {% endfor %}
@@ -104,7 +115,7 @@
         <thead>
             <tr>
             <th style="border: 1px solid #ccc; padding: 6px;">Дата и время</th>
-            <th style="border: 1px solid #ccc; padding: 6px;">ID студента</th>
+            <th style="border: 1px solid #ccc; padding: 6px;">ФИО студента</th>
             <th style="border: 1px solid #ccc; padding: 6px;">Тема</th>
             <th style="border: 1px solid #ccc; padding: 6px;">Действия</th>
             </tr>
