@@ -15,11 +15,15 @@ from utils import load_json, save_json
 from forms import *
 import os
 from model import *
+import mimetypes
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "VERMILION"
 
 Base.metadata.create_all(engine)
+
+ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif'}
 
 @app.route("/", methods=["GET", "POST"])
 def auth():
@@ -105,7 +109,16 @@ def teacher_page():
     login = request.args.get('login')
     role = request.args.get('role')
     form = OpenSlotForm()
-    CURRENT_TEACHER_ID = 1
+    bio_form = BioForm()
+    user = session.query(Users).filter_by(username=login, role=role).first()
+    CURRENT_TEACHER_ID = user.id
+    photo_url = user.photo_path or None  # будет None, если нет аватарки
+
+    if request.method == "POST" and bio_form.submit_bio.data and bio_form.validate_on_submit():
+        user.bio = bio_form.bio.data.strip() or ""
+        session.commit()
+        flash("Биография успешно обновлена!", "success")
+        return redirect(url_for('teacher_page', login=login, role=role))
 
     start_date_str = request.args.get('start_date')
     if start_date_str:
@@ -193,12 +206,15 @@ def teacher_page():
         login=login,
         role=role,
         form=form,
+        bio_form=bio_form,
         week_dates=week_dates,
         open_slot_set=open_slot_set,
         booked_slot_set=booked_slot_set,
         all_slots=all_slots,
         prev_week=prev_week,
-        next_week=next_week
+        next_week=next_week,
+        photo_url=photo_url,
+        current_bio=user.bio or ""
     )
 
 @app.route('/delete_slot/<int:slot_id>', methods=['POST'])
@@ -237,6 +253,24 @@ def delete_slot(slot_id):
 def anonym_page():
     teachers = session.query(Users).filter(Users.role == 'teacher').all()
     return render_template('anonym_page.html', teachers=teachers)
+
+@app.route("/upload_avatar", methods=["POST"])
+def upload_avatar():
+    login = request.args.get('login')
+    role = request.args.get('role')
+    user = session.query(Users).filter_by(username=login, role=role).first()
+    file = request.files['avatar']
+    mime_type, _ = mimetypes.guess_type(file.filename)
+    if mime_type not in ALLOWED_MIME_TYPES:
+        flash("Недопустимый формат файла. Разрешены: JPG, PNG, GIF.", "error")
+        return redirect(url_for('teacher_page', login=login, role=role))
+    filename = secure_filename(f"{user.id}_{file.filename.lower()}")
+    filepath = os.path.join("static", "avatars", filename)
+    file.save(filepath)
+    user.photo_path = f"avatars/{filename}"
+    session.commit()
+    flash("Аватар успешно обновлён!", "success")
+    return redirect(url_for('teacher_page', login=login, role=role))
 
 
 
