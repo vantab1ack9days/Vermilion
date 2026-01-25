@@ -31,6 +31,15 @@ def teacher_auth():
     role = request.args.get('role')
     print(role)
     form = RegistrationForm()
+    if request.method == "POST" and form.validate_on_submit():
+        username = request.form.get('username')
+        password_hash = hashlib.md5(request.form.get('password').encode('utf-8')).hexdigest()
+
+        users_list = session.query(Users).all()
+        for el in users_list:
+            if username == el.username and password_hash == el.password_hash and role == el.role:
+                return redirect(url_for("main_page", login=username))
+        flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
 
@@ -38,6 +47,15 @@ def teacher_auth():
 def student_auth():
     role = request.args.get('role')
     form = RegistrationForm()
+    if request.method == "POST" and form.validate_on_submit():
+        username = request.form.get('username')
+        password_hash = hashlib.md5(request.form.get('password').encode('utf-8')).hexdigest()
+
+        users_list = session.query(Users).all()
+        for el in users_list:
+            if username == el.username and password_hash == el.password_hash and role == el.role:
+                return redirect(url_for("main_page", login=username))
+        flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
 
@@ -45,6 +63,15 @@ def student_auth():
 def admin_auth():
     role = request.args.get('role')
     form = RegistrationForm()
+    if request.method == "POST" and form.validate_on_submit():
+        username = request.form.get('username')
+        password_hash = hashlib.md5(request.form.get('password').encode('utf-8')).hexdigest()
+
+        users_list = session.query(Users).all()
+        for el in users_list:
+            if username == el.username and password_hash == el.password_hash and role == el.role:
+                return redirect(url_for("main_page", login=username))
+        flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
 
@@ -69,8 +96,9 @@ def auth_create():
 
 @app.route("/main_page", methods=["GET", "POST"])
 def main_page():
-    
-    return render_template('main_page.html')
+    login = request.args.get('login')
+
+    return render_template('main_page.html', login=login)
 
 
 
