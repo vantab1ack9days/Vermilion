@@ -189,6 +189,11 @@ def delete_slot(slot_id):
     flash("Слот успешно удалён.", "success")
     return redirect(url_for("teacher_page", login=login, role=role))
 
+@app.route("/anonym")
+def anonym_page():
+    teachers = session.query(Users).filter(Users.role == 'teacher').all()
+    return render_template('anonym_page.html', teachers=teachers)
+
 
 
 if __name__ == "__main__":

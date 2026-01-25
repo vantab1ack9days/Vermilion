@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Гостевой доступ</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background:white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .info-box {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f1f1;
+        }
+        .support {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Гостевой доступ</h1>
+
+        <div class="info-box">
+            <p>Вы просматриваете систему в режиме гостя. Для записи на консультацию и просмотра расписания необходимо <a href="{{ url_for('auth') }}">войти</a> как студент или преподаватель.</p>
+        </div>
+
+        <h2>Список преподавателей</h2>
+        {% if teachers %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Имя пользователя</th>
+                        <th>Роль</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                    <tr>
+                        <td>{{ teacher.username }}</td>
+                        <td>{{ teacher.role }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Список преподавателей временно недоступен.</p>
+        {% endif %}
+
+        <div class="support">
+            <h3>Техническая поддержка</h3>
+            <p>Если у вас возникли вопросы, обратитесь в службу поддержки:</p>
+            <p><strong>Телефон:</strong> +7 (909) 123-45-67</p>
+            <p><strong>Email:</strong> support@timetable.ru</p>
+        </div>
+    </div>
+</body>
+</html>
