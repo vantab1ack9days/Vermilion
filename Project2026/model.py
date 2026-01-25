@@ -8,11 +8,11 @@ Base = declarative_base()
 Session = sessionmaker(bind=engine)
 session = Session()
 
-class News(Base):
-    __tablename__ = 'news'
+class Users(Base):
+    __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True)
-    title = Column(String(100), nullable=False)
-    content = Column(Text, nullable=False)
-    author = Column(String(50), default="Некто")
-    is_private = Column(Integer, default=0)
+    username = Column(String(100), nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(255))
+    photo_path = Column(String(255))

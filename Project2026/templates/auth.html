@@ -38,6 +38,6 @@
         <p class="regist">{{ form.submit() }}</p>
     </form>
     <br>
-    <a class="regist" href="{{ (url_for('auth_create')) }}">Зарегистрироваться</a><br><br>
+    <a class="regist" href="{{ (url_for('auth_create', role=role)) }}">Зарегистрироваться</a><br><br>
 </body>
 </html>
