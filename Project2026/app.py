@@ -414,6 +414,27 @@ def admin_page():
     users = session.query(Users).all()
     return render_template('admin_page.html', users=users)
 
+@app.route("/change_user_role/<int:user_id>", methods=["POST"])
+def change_user_role(user_id):
+    new_role = request.form.get('new_role')
+    if new_role not in ('teacher', 'student'):
+        flash("Недопустимая роль", "error")
+        return redirect(url_for('admin_page'))
+
+    user = session.query(Users).filter_by(id=user_id).first()
+    if not user:
+        flash("Пользователь не найден", "error")
+        return redirect(url_for('admin_page'))
+
+    if user.role == 'admin':
+        flash("Нельзя изменять роль администраторов!", "error")
+        return redirect(url_for('admin_page'))
+
+    user.role = new_role
+    session.commit()
+    flash(f"Роль пользователя '{user.username}' изменена на '{new_role}'", "success")
+    return redirect(url_for('admin_page'))
+
 @app.route("/toggle_user_status/<int:user_id>", methods=["POST"])
 def toggle_user_status(user_id):
     new_status = request.form.get('new_status')
@@ -424,6 +445,10 @@ def toggle_user_status(user_id):
     user = session.query(Users).filter_by(id=user_id).first()
     if not user:
         flash("Пользователь не найден", "error")
+        return redirect(url_for('admin_page'))
+
+    if user.role == 'admin':
+        flash("Нельзя банить администраторов!", "error")
         return redirect(url_for('admin_page'))
 
     user.status = new_status
