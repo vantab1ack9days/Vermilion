@@ -1,6 +1,6 @@
 import string
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, DateField, SelectField
 from wtforms.validators import DataRequired, Length, ValidationError, EqualTo
 from utils import load_json, save_json
 
@@ -45,3 +45,14 @@ class RegistrationForm(FlaskForm):
             EqualTo("password", message="Пароли должны совпадать.")
             ])
     submit = SubmitField("Авторизоваться")
+
+class OpenSlotForm(FlaskForm):
+    date = DateField('Дата', validators=[DataRequired()], format='%Y-%m-%d')
+    hour = SelectField(
+        'Время',
+        choices=[
+            (str(h), f"{h}:00") for h in range(8, 18)
+        ],
+        validators=[DataRequired()]
+    )
+    submit = SubmitField('Открыть запись')

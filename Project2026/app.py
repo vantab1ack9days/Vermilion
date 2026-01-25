@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime
 import hashlib
 from utils import load_json, save_json
-from forms import RegistrationForm
+from forms import *
 import os
 from model import *
 
@@ -38,7 +38,7 @@ def teacher_auth():
         users_list = session.query(Users).all()
         for el in users_list:
             if username == el.username and password_hash == el.password_hash and role == el.role:
-                return redirect(url_for("main_page", login=username))
+                return redirect(url_for("teacher_page", login=username, role=role))
         flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
@@ -54,7 +54,7 @@ def student_auth():
         users_list = session.query(Users).all()
         for el in users_list:
             if username == el.username and password_hash == el.password_hash and role == el.role:
-                return redirect(url_for("main_page", login=username))
+                return redirect(url_for("main_page", login=username, role=role))
         flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
@@ -70,7 +70,7 @@ def admin_auth():
         users_list = session.query(Users).all()
         for el in users_list:
             if username == el.username and password_hash == el.password_hash and role == el.role:
-                return redirect(url_for("main_page", login=username))
+                return redirect(url_for("main_page", login=username, role=role))
         flash("Учётная запись не найдена.", "error")
 
     return render_template('auth.html', form=form, role=role)
@@ -94,11 +94,56 @@ def auth_create():
 
     return render_template('auth_create.html', form=form)
 
-@app.route("/main_page", methods=["GET", "POST"])
-def main_page():
-    login = request.args.get('login')
 
-    return render_template('main_page.html', login=login)
+@app.route("/teacher_page", methods=["GET", "POST"])
+def teacher_page():
+    login = request.args.get('login')
+    role = request.args.get('role')
+    form = OpenSlotForm()
+    CURRENT_TEACHER_ID = 1
+
+    for el in session.query(Users).all():
+        if el.username == login and role==el.role:
+            CURRENT_TEACHER_ID = el.id
+
+    if request.method == "POST" and form.validate_on_submit():
+        selected_date = form.date.data  # это объект date
+        selected_hour = int(form.hour.data)
+
+        slot_datetime = datetime.combine(selected_date, datetime.min.time().replace(hour=selected_hour))
+
+        existing = session.query(Consultation).filter_by(
+            teacher_id=CURRENT_TEACHER_ID,
+            start_time=slot_datetime
+        ).first()
+
+        if existing:
+            flash("Слот на это время уже существует!", "error")
+        else:
+            new_slot = Consultation(
+                teacher_id=CURRENT_TEACHER_ID,
+                start_time=slot_datetime,
+                is_open=True
+            )
+            session.add(new_slot)
+            session.commit()
+            flash("Слот успешно открыт!", "success")
+            return redirect(url_for('teacher_page', login=login, role=role))
+
+    from datetime import timedelta
+    today = datetime.today().date()
+    week_dates = [today + timedelta(days=i) for i in range(7)]
+
+    slots = session.query(Consultation).filter(
+        Consultation.teacher_id == CURRENT_TEACHER_ID,
+        Consultation.start_time >= datetime.combine(today, datetime.min.time()),
+        Consultation.start_time < datetime.combine(today + timedelta(days=7), datetime.min.time())
+    ).all()
+
+    slot_set = {(s.start_time.date(), s.start_time.hour) for s in slots}
+
+    return render_template('teacher_page.html', login=login, role=role, form=form, week_dates=week_dates, slot_set=slot_set)
+
 
 
 

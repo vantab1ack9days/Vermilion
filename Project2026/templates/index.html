@@ -10,6 +10,6 @@
     <a href="{{ (url_for('teacher_auth', role='teacher')) }}" class="teacher">Преподаватель</a>
     <a href="{{ (url_for('student_auth', role='student')) }}" class="student">Студент</a>
     <a href="{{ (url_for('admin_auth', role='admin')) }}" class="admin">Администратор</a>
-    <a href="{{ (url_for('main_page')) }}" class="anonymous">Войти анонимно</a>
+    <a href="{{ (url_for('main_page', login='Аноним', role='unknown')) }}" class="anonymous">Войти анонимно</a>
 </body>
 </html>

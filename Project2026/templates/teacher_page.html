@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Главная</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table {
+        border: 2px solid black;
+        border-collapse: collapse;
+        margin: 20px auto;
+        }
+        th, td {
+        border: 2px solid black;
+        padding: 8px;
+        text-align: center;
+        min-width: 90px;
+        height: 50px;
+        }
+        .open-slot { background-color: #d4edda; } /* светло-зелёный */
+        .form-container { max-width: 500px; margin: 30px auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 6px; }
+        button { padding: 8px 16px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .flash { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .flash.success { background: #d4edda; color: #155724; }
+        .flash.warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>Добро пожаловать, {{ login }}</h1>
+
+    <!-- Всплывающие сообщения -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Таблица расписания -->
+    <table>
+    <thead>
+        <tr>
+        <th>Время</th>
+        {% for date in week_dates %}
+            <th>{{ date.strftime('%d %b') }}</th>
+        {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for hour in range(8, 18) %}
+        <tr>
+        <td>{{ hour }}–{{ hour+1 }}</td>
+        {% for date in week_dates %}
+            <td {% if (date, hour) in slot_set %}class="open-slot"{% endif %}>
+            {% if (date, hour) in slot_set %}
+                Открыт
+            {% endif %}
+            </td>
+        {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+    <!-- Форма -->
+    <div class="form-container">
+    <h3>Открыть новый слот</h3>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+        {{ form.date.label }}
+        {{ form.date() }}
+        </div>
+        <div class="form-group">
+        {{ form.hour.label }}
+        {{ form.hour() }}
+        </div>
+        {{ form.submit(class="btn") }}
+    </form>
+    </div>
+
+</body>
+</html>
