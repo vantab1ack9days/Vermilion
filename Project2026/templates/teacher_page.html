@@ -41,6 +41,18 @@
     {% endif %}
     {% endwith %}
 
+    <!-- Кнопки навигации -->
+    <div style="text-align: center; margin: 15px 0;">
+        <a href="{{ url_for('teacher_page', login=login, role=role, start_date=prev_week) }}"
+        style="padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+            Пред. неделя
+        </a>
+        <a href="{{ url_for('teacher_page', login=login, role=role, start_date=next_week) }}"
+        style="padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">
+            След. неделя
+        </a>
+    </div>
+
     <!-- Таблица расписания -->
     <table>
     <thead>

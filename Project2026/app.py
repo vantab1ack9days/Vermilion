@@ -9,7 +9,7 @@ from flask import (
     get_flashed_messages,
 )
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 import hashlib
 from utils import load_json, save_json
 from forms import *
@@ -102,14 +102,27 @@ def teacher_page():
     form = OpenSlotForm()
     CURRENT_TEACHER_ID = 1
 
+    start_date_str = request.args.get('start_date')
+    if start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            # Приводим к понедельнику (если нужно строго по неделям)
+            # Но можно оставить как есть — просто сдвиг на 7 дней
+        except ValueError:
+            start_date = datetime.today().date()
+    else:
+        start_date = datetime.today().date()
+
+    week_dates = [start_date + timedelta(days=i) for i in range(7)]
+    
+
     for el in session.query(Users).all():
         if el.username == login and role==el.role:
             CURRENT_TEACHER_ID = el.id
 
     if request.method == "POST" and form.validate_on_submit():
-        selected_date = form.date.data  # это объект date
+        selected_date = form.date.data
         selected_hour = int(form.hour.data)
-
         slot_datetime = datetime.combine(selected_date, datetime.min.time().replace(hour=selected_hour))
 
         existing = session.query(Consultation).filter_by(
@@ -118,7 +131,7 @@ def teacher_page():
         ).first()
 
         if existing:
-            flash("Слот на это время уже существует!", "error")
+            flash("Слот на это время уже существует!", "warning")
         else:
             new_slot = Consultation(
                 teacher_id=CURRENT_TEACHER_ID,
@@ -128,27 +141,26 @@ def teacher_page():
             session.add(new_slot)
             session.commit()
             flash("Слот успешно открыт!", "success")
-            return redirect(url_for('teacher_page', login=login, role=role))
+            # Перенаправляем на ту же неделю
+            return redirect(url_for('teacher_page', login=login, role=role, start_date=start_date.strftime('%Y-%m-%d')))
 
-    # === Получаем все открытые слоты преподавателя (сортируем по времени) ===
+    # === Получаем слоты для текущей недели (для подсветки) ===
+    week_start = datetime.combine(start_date, datetime.min.time())
+    week_end = week_start + timedelta(days=7)
+    week_slots = session.query(Consultation).filter(
+        Consultation.teacher_id == CURRENT_TEACHER_ID,
+        Consultation.start_time >= week_start,
+        Consultation.start_time < week_end
+    ).all()
+    slot_set = {(s.start_time.date(), s.start_time.hour) for s in week_slots}
+
+    # === Все слоты (для списка внизу) ===
     all_slots = session.query(Consultation).filter_by(
         teacher_id=CURRENT_TEACHER_ID
     ).order_by(Consultation.start_time.desc()).all()
 
-    for slot in all_slots:
-        slot.display_time = slot.start_time.strftime('%d.%m %H:%M')
-
-    from datetime import timedelta
-    today = datetime.today().date()
-    week_dates = [today + timedelta(days=i) for i in range(7)]
-
-    slots = session.query(Consultation).filter(
-        Consultation.teacher_id == CURRENT_TEACHER_ID,
-        Consultation.start_time >= datetime.combine(today, datetime.min.time()),
-        Consultation.start_time < datetime.combine(today + timedelta(days=7), datetime.min.time())
-    ).all()
-
-    slot_set = {(s.start_time.date(), s.start_time.hour) for s in slots}
+    prev_week = (start_date - timedelta(days=7)).strftime('%Y-%m-%d')
+    next_week = (start_date + timedelta(days=7)).strftime('%Y-%m-%d')
 
     return render_template(
         'teacher_page.html',
@@ -157,7 +169,9 @@ def teacher_page():
         form=form,
         week_dates=week_dates,
         slot_set=slot_set,
-        all_slots=all_slots
+        all_slots=all_slots,
+        prev_week=prev_week,
+        next_week=next_week
     )
 
 @app.route('/delete_slot/<int:slot_id>', methods=['POST'])
