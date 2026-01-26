@@ -109,11 +109,15 @@
             {% if (date, hour) in slot_map %}
                 <!-- Кнопка без onclick -->
                 <form method="POST" action="{{ url_for('book_slot', login=login, role=role, slot_id=slot_map[(date, hour)]) }}" style="display:inline;">
-                <button type="submit" class="book-btn"
-                        data-date="{{ date.strftime('%d.%m') }}"
-                        data-hour="{{ hour }}">
-                    Записаться
-                </button>
+                <div style="display: flex; flex-direction: column; align-items: center;">
+                    <input type="text" name="topic" placeholder="Тема консультации" maxlength="200"
+                        style="width: 120px; font-size: 11px; padding: 2px; margin-bottom: 4px;">
+                    <button type="submit" class="book-btn"
+                            data-date="{{ date.strftime('%d.%m') }}"
+                            data-hour="{{ hour }}">
+                        Записаться
+                    </button>
+                </div>
                 </form>
             {% endif %}
             </td>

@@ -394,7 +394,10 @@ def book_slot(slot_id):
         flash("Вы уже записаны на другую консультацию в это время", "warning")
         return redirect(request.referrer)
 
+    topic = request.form.get('topic', '').strip()[:200]
+
     slot.student_id = CURRENT_STUDENT_ID
+    slot.topic = topic
     slot.is_open = False
     session.commit()
     flash("Вы успешно записались!", "success")
