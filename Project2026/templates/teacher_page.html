@@ -29,173 +29,194 @@
         .flash.success { background: #d4edda; color: #155724; }
         .flash.warning { background: #fff3cd; color: #856404; }
     </style>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Добро пожаловать, {{ login }}</h1>
+    <h1>Добро пожаловать, {{ login }}</h1>
 
-        <a href="{{ url_for('auth') }}" style="float: right;">Выйти из уч. записи</a>
+    <a href="{{ url_for('auth') }}" style="float: right;">Выйти из уч. записи</a>
 
-        <!-- Всплывающие сообщения -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-        {% endwith %} 
+    <!-- Всплывающие сообщения -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
 
-        <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 20px;">
-        <!-- Аватарка -->
-        <div style="width: 120px; height: 120px; border: 2px solid #ccc; border-radius: 8px; overflow: hidden;">
-            {% if photo_url %}
-                <img src="{{ url_for('static', filename=photo_url) }}" 
-                    alt="Аватар" 
-                    style="width: 100%; height: 100%; object-fit: cover;">
-            {% else %}
-                <div style="width: 100%; height: 100%; background: #e9ecef; display: flex; align-items: center; justify-content: center; color: #6c757d;">
-                    Нет фото
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Заголовок и управление -->
-        <div>
-            <h1>Добро пожаловать, {{ login }}</h1>
-            
-            <!-- Форма загрузки аватарки -->
-            <form method="POST" action="{{ url_for('upload_avatar', login=login, role=role) }}" enctype="multipart/form-data" style="margin-top: 10px;">
-                <input type="file" name="avatar" accept="image/*" style="display: inline-block; width: auto;">
-                <button type="submit" style="padding: 4px 8px; font-size: 12px;">Загрузить аватар</button>
-            </form>
-        </div>
-    </div>
-
-    <div style="margin-top: 20px; max-width: 600px;">
-        <h3>О себе</h3>
-        {% if current_bio %}
-            <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
-                {{ current_bio|replace('\n', '<br>')|safe }}
-            </div>
+    <div style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 20px;">
+    <!-- Аватарка -->
+    <div style="width: 120px; height: 120px; border: 2px solid #ccc; border-radius: 8px; overflow: hidden;">
+        {% if photo_url %}
+            <img src="{{ url_for('static', filename=photo_url) }}" 
+                 alt="Аватар" 
+                 style="width: 100%; height: 100%; object-fit: cover;">
         {% else %}
-            <p style="color: #6c757d;">Биография ещё не заполнена.</p>
-        {% endif %}
-
-        <!-- Форма редактирования -->
-        <form method="POST">
-            {{ bio_form.hidden_tag() }}
-            <div style="margin: 10px 0;">
-                {{ bio_form.bio(rows=4, cols=50, style="width: 100%; padding: 8px;") }}
+            <div style="width: 100%; height: 100%; background: #e9ecef; display: flex; align-items: center; justify-content: center; color: #6c757d;">
+                Нет фото
             </div>
-            {{ bio_form.submit_bio(style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;") }}
-        </form>
+        {% endif %}
     </div>
 
-        <!-- Кнопки навигации -->
-        <div style="text-align: center; margin: 15px 0;">
-            <a href="{{ url_for('teacher_page', login=login, role=role, start_date=prev_week) }}"
-            style="padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">
-                Пред. неделя
-            </a>
-            <a href="{{ url_for('teacher_page', login=login, role=role, start_date=next_week) }}"
-            style="padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">
-                След. неделя
-            </a>
-        </div>
-
-        <!-- Таблица расписания -->
-        <table>
-        <thead>
-            <tr>
-            <th>Время</th>
-            {% for date in week_dates %}
-                <th>{{ date.strftime('%d %b') }}</th>
-            {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for hour in range(8, 18) %}
-            <tr>
-            <td>{{ hour }}–{{ hour+1 }}</td>
-            {% for date in week_dates %}
-                <td 
-                {% if (date, hour) in open_slot_set %}
-                    class="open-slot"
-                {% elif (date, hour) in booked_slot_set %}
-                    class="closed-slot"
-                {% endif %}
-                >
-                {% if (date, hour) in open_slot_set %}
-                    Открыт
-                {% elif (date, hour) in booked_slot_set %}
-                    Занято
-                {% endif %}
-                </td>
-            {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-        </table>
-
-        <!-- Форма -->
-        <div class="form-container">
-        <h3>Открыть новый слот</h3>
-        <form method="POST">
-            {{ form.hidden_tag() }}
-            <div class="form-group">
-            {{ form.date.label }}
-            {{ form.date() }}
-            </div>
-            <div class="form-group">
-            {{ form.hour.label }}
-            {{ form.hour() }}
-            </div>
-            {{ form.submit(class="btn") }}
+    <!-- Заголовок и управление -->
+    <div>
+        <h2>{{ login }}</h2>
+        
+        <!-- Форма загрузки аватарки -->
+        <form method="POST" action="{{ url_for('upload_avatar', login=login, role=role) }}" enctype="multipart/form-data" style="margin-top: 10px;">
+            <input type="file" name="avatar" accept="image/*" style="display: inline-block; width: auto;">
+            <button type="submit" style="padding: 4px 8px; font-size: 12px;">Загрузить аватар</button>
         </form>
-        </div>
+    </div>
+</div>
 
-        <!-- Список всех открытых слотов -->
-        <div class="slots-list" style="max-width: 1000px; margin: 40px auto;">
-        <h3>Все открытые слоты</h3>
+<div style="margin-top: 20px; max-width: 600px;">
+    <h3>О себе</h3>
+    {% if current_bio %}
+        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+            {{ current_bio|replace('\n', '<br>')|safe }}
+        </div>
+    {% else %}
+        <p style="color: #6c757d;">Биография ещё не заполнена.</p>
+    {% endif %}
+
+    <!-- Форма редактирования -->
+    <form method="POST">
+        {{ bio_form.hidden_tag() }}
+        <div style="margin: 10px 0;">
+            {{ bio_form.bio(rows=4, cols=50, style="width: 100%; padding: 8px;") }}
+        </div>
+        {{ bio_form.submit_bio(style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;") }}
+    </form>
+</div>
+
+    <!-- Кнопки навигации -->
+    <div style="text-align: center; margin: 15px 0;">
+        <a href="{{ url_for('teacher_page', login=login, role=role, start_date=prev_week) }}"
+        style="padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">
+            Пред. неделя
+        </a>
+        <a href="{{ url_for('teacher_page', login=login, role=role, start_date=next_week) }}"
+        style="padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">
+            След. неделя
+        </a>
+    </div>
+
+    <!-- Таблица расписания -->
+    <table>
+    <thead>
+        <tr>
+        <th>Время</th>
+        {% for date in week_dates %}
+            <th>{{ date.strftime('%d %b') }}</th>
+        {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for hour in range(8, 18) %}
+        <tr>
+        <td>{{ hour }}–{{ hour+1 }}</td>
+        {% for date in week_dates %}
+            <td 
+            {% if (date, hour) in open_slot_set %}
+                class="open-slot"
+            {% elif (date, hour) in booked_slot_set %}
+                class="closed-slot"
+            {% endif %}
+            >
+            {% if (date, hour) in open_slot_set %}
+                Открыт
+            {% elif (date, hour) in booked_slot_set %}
+                Занято
+            {% endif %}
+            </td>
+        {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+
+    <!-- Форма -->
+    <div class="form-container">
+    <h3>Открыть новый слот</h3>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+        {{ form.date.label }}
+        {{ form.date() }}
+        </div>
+        <div class="form-group">
+        {{ form.hour.label }}
+        {{ form.hour() }}
+        </div>
+        {{ form.submit(class="btn") }}
+    </form>
+    </div>
+
+    <!-- Список всех открытых слотов -->
+    <div class="slots-list" style="max-width: 1200px; margin: 40px auto;">
+        <h3>Все записанные слоты</h3>
         {% if all_slots %}
             <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-            <thead>
-                <tr>
-                <th style="border: 1px solid #ccc; padding: 6px;">Дата и время</th>
-                <th style="border: 1px solid #ccc; padding: 6px;">ФИО студента</th>
-                <th style="border: 1px solid #ccc; padding: 6px;">Тема</th>
-                <th style="border: 1px solid #ccc; padding: 6px;">Действия</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for slot in all_slots %}
-                <tr>
-                <td style="border: 1px solid #ccc; padding: 6px;">{{ slot.start_time.strftime('%d.%m.%Y %H:%M') }}</td>
-                <td style="border: 1px solid #ccc; padding: 6px;">{{ slot.student_id or '—' }}</td>
-                <td style="border: 1px solid #ccc; padding: 6px;">{{ slot.topic or '—' }}</td>
-                <td style="border: 1px solid #ccc; padding: 6px;">
-                    {% if slot.student_id is none %}
-                        <form method="POST" action="{{ url_for('delete_slot', slot_id=slot.id, login=login,
-                        role=role,) }}" style="display:inline;">
-                            <button type="submit"
-                                onclick="return confirm('Удалить слот {{ slot.display_time }}?')"
-                                style="padding: 4px 8px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">
-                                Удалить
-                            </button>
-                        </form>
-                    {% else %}
-                        Занят
-                    {% endif %}
-                </td>
-                </tr>
-                {% endfor %}
-            </tbody>
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #ccc; padding: 6px;">Дата и время</th>
+                        <th style="border: 1px solid #ccc; padding: 6px;">ФИО студента</th>
+                        <th style="border: 1px solid #ccc; padding: 6px; width: 200px;">Биография студента</th>
+                        <th style="border: 1px solid #ccc; padding: 6px;">Тема</th>
+                        <th style="border: 1px solid #ccc; padding: 6px; width: 120px;">Посещение</th>
+                        <th style="border: 1px solid #ccc; padding: 6px;">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for slot in all_slots %}
+                    <tr>
+                        <td style="border: 1px solid #ccc; padding: 6px;">{{ slot.start_time.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td style="border: 1px solid #ccc; padding: 6px;">
+                            {{ slot.student.username if slot.student else '—' }}
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 6px; font-size: 0.9em;">
+                            {% if slot.student and slot.student.bio %}
+                                {{ slot.student.bio|truncate(150) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 6px;">{{ slot.topic or '—' }}</td>
+                        <td style="border: 1px solid #ccc; padding: 6px; text-align: center;">
+                            {% if slot.student_id %}
+                                <form method="POST" action="{{ url_for('toggle_attendance', slot_id=slot.id, login=login, role=role) }}" style="display:inline;">
+                                    <button type="submit"
+                                        style="padding: 4px 8px; font-size: 12px; background: {{ '#28a745' if slot.attended else '#6c757d' }}; color: white; border: none; border-radius: 3px; cursor: pointer;"
+                                        title="{{ 'Отметить как отсутствовавшего' if slot.attended else 'Отметить как присутствовавшего' }}">
+                                        {{ '✓ Был' if slot.attended else 'Не был' }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 6px;">
+                            {% if slot.student_id is none %}
+                                <form method="POST" action="{{ url_for('delete_slot', slot_id=slot.id, login=login, role=role) }}" style="display:inline;">
+                                    <button type="submit"
+                                        onclick="return confirm('Удалить слот {{ slot.start_time.strftime('%d.%m %H:%M') }}?')"
+                                        style="padding: 4px 8px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                                        Удалить
+                                    </button>
+                                </form>
+                            {% else %}
+                                Занят
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
             </table>
         {% else %}
             <p>Нет созданных слотов.</p>
         {% endif %}
-        </div>
     </div>
+
 </body>
 </html>

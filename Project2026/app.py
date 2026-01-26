@@ -28,6 +28,7 @@ ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif'}
 @app.route("/", methods=["GET", "POST"])
 def auth():
     
+    get_flashed_messages()
     return render_template('index.html')
 
 @app.route("/teacher_auth", methods=["GET", "POST"])
@@ -206,13 +207,6 @@ def teacher_page():
         teacher_id=CURRENT_TEACHER_ID
     ).order_by(Consultation.start_time.desc()).all()
 
-    for i in all_slots:
-        for j in session.query(Users).filter_by(role = 'student').all():
-            if i.student_id == j.id:
-                i.student_id = j.username
-                print(i.student_id)
-        
-
     prev_week = (start_date - timedelta(days=7)).strftime('%Y-%m-%d')
     next_week = (start_date + timedelta(days=7)).strftime('%Y-%m-%d')
 
@@ -274,25 +268,30 @@ def upload_avatar():
     login = request.args.get('login')
     role = request.args.get('role')
     user = session.query(Users).filter_by(username=login, role=role).first()
-    file = request.files['avatar']
+
+    file = request.files.get('avatar')
+    if not file or not file.filename:
+        flash("Файл не выбран.", "error")
+        return redirect(request.referrer or url_for('auth'))
+
     mime_type, _ = mimetypes.guess_type(file.filename)
     if mime_type not in ALLOWED_MIME_TYPES:
         flash("Недопустимый формат файла. Разрешены: JPG, PNG, GIF.", "error")
-        return redirect(url_for('teacher_page', login=login, role=role))
+        return redirect(request.referrer or url_for('auth'))
+
     filename = secure_filename(f"{user.id}_{file.filename.lower()}")
     filepath = os.path.join("static", "avatars", filename)
     file.save(filepath)
     user.photo_path = f"avatars/{filename}"
     session.commit()
     flash("Аватар успешно обновлён!", "success")
-    return redirect(url_for('teacher_page', login=login, role=role))
 
+    if role == 'teacher':
+        return redirect(url_for('teacher_page', login=login, role=role))
+    elif role == 'student':
+        return redirect(url_for('student_page', login=login, role=role))
 
-
-
-
-
-
+        
 #--------------------- СТУДЕНТ ---------------------
 
 @app.route("/student_page", methods=["GET", "POST"])
@@ -302,7 +301,16 @@ def student_page():
     teachers = session.query(Users).filter(Users.role == 'teacher').all()
 
     student = session.query(Users).filter_by(username=login, role='student').first()
-    
+
+    bio_form = BioForm()
+    if request.method == "POST" and bio_form.submit_bio.data and bio_form.validate_on_submit():
+        student.bio = bio_form.bio.data.strip() or ""
+        session.commit()
+        flash("Биография успешно обновлена!", "success")
+        return redirect(url_for('student_page', login=login, role=role))
+    photo_url = student.photo_path or None
+    current_bio = student.bio or ""
+
     bookings = session.query(Consultation)\
             .filter(Consultation.student_id == student.id)\
             .order_by(Consultation.start_time.desc())\
@@ -313,7 +321,11 @@ def student_page():
         login=login,
         role=role,
         bookings=bookings,
-        teachers=teachers
+        teachers=teachers,
+        photo_url=photo_url,
+        current_bio=current_bio,
+        bio_form=bio_form,
+        student_id=student.id
     )
 
 @app.route('/schedule/<int:teacher_id>')
@@ -369,6 +381,10 @@ def student_schedule(teacher_id):
         current_teacher_id=teacher_id
     )
 
+# дайте мне права
+# дайте мне права
+# дайте мне права
+# дайте мне права
 @app.route('/book_slot/<int:slot_id>', methods=['POST'])
 def book_slot(slot_id):
     login = request.args.get('login')
@@ -397,11 +413,32 @@ def book_slot(slot_id):
         flash("Вы уже записаны на другую консультацию в это время", "warning")
         return redirect(request.referrer)
 
+    topic = request.form.get('topic', '').strip()[:200]
+
     slot.student_id = CURRENT_STUDENT_ID
-    slot.is_open = False  # можно оставить True — зависит от логики
+    slot.topic = topic
+    slot.is_open = False
     session.commit()
     flash("Вы успешно записались!", "success")
     return redirect(request.referrer)
+
+@app.route('/toggle_attendance/<int:slot_id>', methods=['POST'])
+def toggle_attendance(slot_id):
+    login = request.args.get('login')
+    role = request.args.get('role')
+    
+    slot = session.query(Consultation).filter_by(id=slot_id).first()
+    if not slot or not slot.student_id:
+        flash("Невозможно отметить посещение.", "error")
+        return redirect(url_for('teacher_page', login=login, role=role))
+    
+    # Переключаем статус
+    slot.attended = not slot.attended
+    session.commit()
+    
+    status = "отмечен как присутствовавший" if slot.attended else "отмечен как отсутствовавший"
+    flash(f"Студент {status}.", "success")
+    return redirect(url_for('teacher_page', login=login, role=role))
 
 
 
