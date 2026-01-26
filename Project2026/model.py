@@ -24,6 +24,7 @@ class Consultation(Base):
     is_open = Column(Boolean, default=True)
     student_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     topic = Column(String(200), nullable=True)
+    attended = Column(Boolean, default=False)
 
     teacher = relationship("Users", foreign_keys=[teacher_id], back_populates="taught_slots")
     student = relationship("Users", foreign_keys=[student_id], back_populates="booked_slots")
