@@ -259,25 +259,30 @@ def upload_avatar():
     login = request.args.get('login')
     role = request.args.get('role')
     user = session.query(Users).filter_by(username=login, role=role).first()
-    file = request.files['avatar']
+
+    file = request.files.get('avatar')
+    if not file or not file.filename:
+        flash("Файл не выбран.", "error")
+        return redirect(request.referrer or url_for('auth'))
+
     mime_type, _ = mimetypes.guess_type(file.filename)
     if mime_type not in ALLOWED_MIME_TYPES:
         flash("Недопустимый формат файла. Разрешены: JPG, PNG, GIF.", "error")
-        return redirect(url_for('teacher_page', login=login, role=role))
+        return redirect(request.referrer or url_for('auth'))
+
     filename = secure_filename(f"{user.id}_{file.filename.lower()}")
     filepath = os.path.join("static", "avatars", filename)
     file.save(filepath)
     user.photo_path = f"avatars/{filename}"
     session.commit()
     flash("Аватар успешно обновлён!", "success")
-    return redirect(url_for('teacher_page', login=login, role=role))
 
+    if role == 'teacher':
+        return redirect(url_for('teacher_page', login=login, role=role))
+    elif role == 'student':
+        return redirect(url_for('student_page', login=login, role=role))
 
-
-
-
-
-
+        
 #--------------------- СТУДЕНТ ---------------------
 
 @app.route("/student_page", methods=["GET", "POST"])
@@ -287,7 +292,16 @@ def student_page():
     teachers = session.query(Users).filter(Users.role == 'teacher').all()
 
     student = session.query(Users).filter_by(username=login, role='student').first()
-    
+
+    bio_form = BioForm()
+    if request.method == "POST" and bio_form.submit_bio.data and bio_form.validate_on_submit():
+        student.bio = bio_form.bio.data.strip() or ""
+        session.commit()
+        flash("Биография успешно обновлена!", "success")
+        return redirect(url_for('student_page', login=login, role=role))
+    photo_url = student.photo_path or None
+    current_bio = student.bio or ""
+
     bookings = session.query(Consultation)\
             .filter(Consultation.student_id == student.id)\
             .order_by(Consultation.start_time.desc())\
@@ -298,7 +312,11 @@ def student_page():
         login=login,
         role=role,
         bookings=bookings,
-        teachers=teachers
+        teachers=teachers,
+        photo_url=photo_url,
+        current_bio=current_bio,
+        bio_form=bio_form,
+        student_id=student.id
     )
 
 @app.route('/schedule/<int:teacher_id>')
@@ -383,7 +401,7 @@ def book_slot(slot_id):
         return redirect(request.referrer)
 
     slot.student_id = CURRENT_STUDENT_ID
-    slot.is_open = False  # можно оставить True — зависит от логики
+    slot.is_open = False
     session.commit()
     flash("Вы успешно записались!", "success")
     return redirect(request.referrer)
