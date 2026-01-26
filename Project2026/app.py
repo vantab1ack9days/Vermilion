@@ -354,6 +354,7 @@ def student_schedule(teacher_id):
         current_teacher_id=teacher_id
     )
 
+# дайте мне права
 @app.route('/book_slot/<int:slot_id>', methods=['POST'])
 def book_slot(slot_id):
     login = request.args.get('login')
