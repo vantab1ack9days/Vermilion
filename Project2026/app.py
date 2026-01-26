@@ -28,6 +28,7 @@ ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/gif'}
 @app.route("/", methods=["GET", "POST"])
 def auth():
     
+    get_flashed_messages()
     return render_template('index.html')
 
 @app.route("/teacher_auth", methods=["GET", "POST"])
@@ -190,13 +191,6 @@ def teacher_page():
     all_slots = session.query(Consultation).filter_by(
         teacher_id=CURRENT_TEACHER_ID
     ).order_by(Consultation.start_time.desc()).all()
-
-    for i in all_slots:
-        for j in session.query(Users).filter_by(role = 'student').all():
-            if i.student_id == j.id:
-                i.student_id = j.username
-                print(i.student_id)
-        
 
     prev_week = (start_date - timedelta(days=7)).strftime('%Y-%m-%d')
     next_week = (start_date + timedelta(days=7)).strftime('%Y-%m-%d')
@@ -405,6 +399,24 @@ def book_slot(slot_id):
     session.commit()
     flash("Вы успешно записались!", "success")
     return redirect(request.referrer)
+
+@app.route('/toggle_attendance/<int:slot_id>', methods=['POST'])
+def toggle_attendance(slot_id):
+    login = request.args.get('login')
+    role = request.args.get('role')
+    
+    slot = session.query(Consultation).filter_by(id=slot_id).first()
+    if not slot or not slot.student_id:
+        flash("Невозможно отметить посещение.", "error")
+        return redirect(url_for('teacher_page', login=login, role=role))
+    
+    # Переключаем статус
+    slot.attended = not slot.attended
+    session.commit()
+    
+    status = "отмечен как присутствовавший" if slot.attended else "отмечен как отсутствовавший"
+    flash(f"Студент {status}.", "success")
+    return redirect(url_for('teacher_page', login=login, role=role))
 
 
 if __name__ == "__main__":

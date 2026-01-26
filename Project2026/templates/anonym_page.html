@@ -61,14 +61,20 @@
                 <thead>
                     <tr>
                         <th>Имя пользователя</th>
-                        <th>Роль</th>
+                        <th>О себе</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for teacher in teachers %}
                     <tr>
                         <td>{{ teacher.username }}</td>
-                        <td>{{ teacher.role }}</td>
+                        <td>
+                            {% if teacher.bio and teacher.bio.strip() %}
+                                {{ teacher.bio|truncate(150) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
