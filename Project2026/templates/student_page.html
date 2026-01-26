@@ -4,6 +4,7 @@
     <title>Личный кабинет</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; }
         h2 { margin-top: 30px; }
@@ -33,55 +34,57 @@
         font-size: 16px;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Добро пожаловать, {{ login }}</h1>
-    <a href="{{ url_for('auth') }}" style="float: right;">Выйти из уч. записи</a>
+    <div class="container">
+        <h1>Добро пожаловать, {{ login }}</h1>
+        <a href="{{ url_for('auth') }}" style="float: right;">Выйти из уч. записи</a>
 
-    <div>
-        <h2>Преподаватели:</h2>
-        {% for el in teachers %}
-        <p>{{ el.username }}   <a  href="{{ url_for('student_schedule', login=login, role=role, teacher_id=el.id) }}">Посмотреть консультации</a></p>
-        {% endfor %}
-    </div>
+        <div>
+            <h2>Преподаватели:</h2>
+            {% for el in teachers %}
+            <p>{{ el.username }}   <a  href="{{ url_for('student_schedule', login=login, role=role, teacher_id=el.id) }}">Посмотреть консультации</a></p>
+            {% endfor %}
+        </div>
 
-    <!-- Список записей -->
-    <h2>Мои записи на консультации</h2>
-    {% if bookings %}
-    <table>
-        <thead>
-        <tr>
-            <th>Дата и время</th>
-            <th>Преподаватель</th>
-            <th>Тема</th>
-            <th>Статус</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for slot in bookings %}
+        <!-- Список записей -->
+        <h2>Мои записи на консультации</h2>
+        {% if bookings %}
+        <table>
+            <thead>
             <tr>
-            <td>{{ slot.start_time.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td>
-                {% set teacher = slot.teacher %}
-                {{ teacher.username if teacher else '—' }}
-            </td>
-            <td>{{ slot.topic or '—' }}</td>
-            <td>
-                {% if slot.is_open == False and slot.student_id %}
-                Занято
-                {% elif slot.is_open %}
-                Открыт
-                {% else %}
-                Отменено
-                {% endif %}
-            </td>
+                <th>Дата и время</th>
+                <th>Преподаватель</th>
+                <th>Тема</th>
+                <th>Статус</th>
             </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>У вас пока нет записей на консультации.</p>
-    {% endif %}
-
+            </thead>
+            <tbody>
+            {% for slot in bookings %}
+                <tr>
+                <td>{{ slot.start_time.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>
+                    {% set teacher = slot.teacher %}
+                    {{ teacher.username if teacher else '—' }}
+                </td>
+                <td>{{ slot.topic or '—' }}</td>
+                <td>
+                    {% if slot.is_open == False and slot.student_id %}
+                    Занято
+                    {% elif slot.is_open %}
+                    Открыт
+                    {% else %}
+                    Отменено
+                    {% endif %}
+                </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>У вас пока нет записей на консультации.</p>
+        {% endif %}
+    </div>
 </body>
 </html>
