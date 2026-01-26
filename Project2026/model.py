@@ -39,6 +39,7 @@ class Users(Base):
     role = Column(String(255))
     photo_path = Column(String(255))
     bio = Column(Text, default="")
+    status = Column(String(6), default='active', nullable=False)
 
     taught_slots = relationship("Consultation", foreign_keys=[Consultation.teacher_id], back_populates="teacher")
     booked_slots = relationship("Consultation", foreign_keys=[Consultation.student_id], back_populates="student")
