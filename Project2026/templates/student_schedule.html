@@ -69,77 +69,76 @@
         .flash.error { background-color: #f8d7da; color: #721c24; }
         .flash.warning { background-color: #fff3cd; color: #856404; }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h2>Расписание консультаций — {{ teacher.username }}</h2>
-    <a href="{{ url_for('auth') }}" style="float: right;">Выйти из уч. записи</a>
-    <a href="{{ url_for('student_page', login=login, role=role) }}" style="float: left;">Назад</a>
+    <div class="container">
+        <h2>Расписание консультаций — {{ teacher.username }}</h2>
+        <a href="{{ url_for('auth') }}" style="float: right;">Выйти из уч. записи</a>
+        <a href="{{ url_for('student_page', login=login, role=role) }}" style="float: left;">Назад</a>
 
-    <!-- Сообщения (flash) -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <!-- Кнопки навигации -->
-    <div class="nav-buttons">
-        <a href="{{ url_for('student_schedule', login=login, role=role, teacher_id=current_teacher_id, start_date=prev_week) }}">Пред. неделя</a>
-        <a href="{{ url_for('student_schedule', login=login, role=role, teacher_id=current_teacher_id, start_date=next_week) }}">След. неделя</a>
-    </div>
-
-    <!-- Таблица расписания -->
-    <table>
-        <thead>
-        <tr>
-            <th>Время</th>
-            {% for date in week_dates %}
-            <th>{{ date.strftime('%d %b') }}</th>
+        <!-- Сообщения (flash) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
             {% endfor %}
-        </tr>
-        </thead>
-        <tbody>
-        {% for hour in range(8, 18) %}
-        <tr>
-        <td>{{ hour }}–{{ hour+1 }}</td>
-        {% for date in week_dates %}
-            <td {% if (date, hour) in slot_map %}class="available-cell"{% endif %}>
-            {% if (date, hour) in slot_map %}
-                <!-- Кнопка без onclick -->
-                <form method="POST" action="{{ url_for('book_slot', login=login, role=role, slot_id=slot_map[(date, hour)]) }}" style="display:inline;">
-                <div style="display: flex; flex-direction: column; align-items: center;">
-                    <input type="text" name="topic" placeholder="Тема консультации" maxlength="200"
-                        style="width: 120px; font-size: 11px; padding: 2px; margin-bottom: 4px;">
+            {% endif %}
+        {% endwith %}
+
+        <!-- Кнопки навигации -->
+        <div class="nav-buttons">
+            <a href="{{ url_for('student_schedule', login=login, role=role, teacher_id=current_teacher_id, start_date=prev_week) }}">Пред. неделя</a>
+            <a href="{{ url_for('student_schedule', login=login, role=role, teacher_id=current_teacher_id, start_date=next_week) }}">След. неделя</a>
+        </div>
+
+        <!-- Таблица расписания -->
+        <table>
+            <thead>
+            <tr>
+                <th>Время</th>
+                {% for date in week_dates %}
+                <th>{{ date.strftime('%d %b') }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for hour in range(8, 18) %}
+            <tr>
+            <td>{{ hour }}–{{ hour+1 }}</td>
+            {% for date in week_dates %}
+                <td {% if (date, hour) in slot_map %}class="available-cell"{% endif %}>
+                {% if (date, hour) in slot_map %}
+                    <!-- Кнопка без onclick -->
+                    <form method="POST" action="{{ url_for('book_slot', login=login, role=role, slot_id=slot_map[(date, hour)]) }}" style="display:inline;">
                     <button type="submit" class="book-btn"
                             data-date="{{ date.strftime('%d.%m') }}"
                             data-hour="{{ hour }}">
                         Записаться
                     </button>
-                </div>
-                </form>
-            {% endif %}
-            </td>
-        {% endfor %}
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                    </form>
+                {% endif %}
+                </td>
+            {% endfor %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
 
 
-<script>
-// Добавляем обработчик на все кнопки "Записаться"
-document.querySelectorAll('.book-btn').forEach(button => {
-  button.addEventListener('click', function(e) {
-    const date = this.dataset.date;
-    const hour = this.dataset.hour;
-    const message = `Записаться на ${date} в ${hour}:00?`;
-    if (!confirm(message)) {
-      e.preventDefault(); // отменить отправку формы
-    }
-  });
-});
-</script>
+    <script>
+    // Добавляем обработчик на все кнопки "Записаться"
+    document.querySelectorAll('.book-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+        const date = this.dataset.date;
+        const hour = this.dataset.hour;
+        const message = `Записаться на ${date} в ${hour}:00?`;
+        if (!confirm(message)) {
+        e.preventDefault(); // отменить отправку формы
+        }
+    });
+    });
+    </script>
+    </div>
 </body>
 </html>
