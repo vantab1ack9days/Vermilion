@@ -127,7 +127,7 @@
                 {% endif %}
                 >
                 {% if (date, hour) in open_slot_set %}
-                    Открыт
+                    Открыто
                 {% elif (date, hour) in booked_slot_set %}
                     Занято
                 {% endif %}
@@ -140,7 +140,7 @@
 
         <!-- Форма -->
         <div class="form-container">
-        <h3>Открыть новый слот</h3>
+        <h3>Добавить консультацию</h3>
         <form method="POST">
             {{ form.hidden_tag() }}
             <div class="form-group">
@@ -157,7 +157,7 @@
 
         <!-- Список всех открытых слотов -->
         <div class="slots-list" style="max-width: 1200px; margin: 40px auto;">
-            <h3>Все записанные слоты</h3>
+            <h3>Все консультации</h3>
             {% if all_slots %}
                 <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                     <thead>
@@ -215,7 +215,7 @@
                     </tbody>
                 </table>
             {% else %}
-                <p>Нет созданных слотов.</p>
+                <p>Нет консультаций.</p>
             {% endif %}
         </div>
     </div>

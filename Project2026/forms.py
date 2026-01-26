@@ -55,7 +55,7 @@ class OpenSlotForm(FlaskForm):
         ],
         validators=[DataRequired()]
     )
-    submit = SubmitField('Открыть запись')
+    submit = SubmitField('Добавить')
 
 class BioForm(FlaskForm):
     bio = TextAreaField("О себе", validators=[Length(max=500, message="Не более 500 символов.")])
